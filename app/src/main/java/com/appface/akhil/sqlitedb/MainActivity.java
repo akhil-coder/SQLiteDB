@@ -222,7 +222,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         }else {
             // < Marshmellow
             openCamera();
-        }
+        } //test
     }
 
     void checkGalleryPermission() {
