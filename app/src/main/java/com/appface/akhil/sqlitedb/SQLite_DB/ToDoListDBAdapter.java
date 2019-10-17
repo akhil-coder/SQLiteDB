@@ -16,13 +16,14 @@ public class ToDoListDBAdapter {
     private static final String TAG = "ToDoListDBAdapter";
 
     private static final String DB_NAME = "todolist.db";
-    private static final int DB_Version = 1;
+    private static final int DB_Version = 2;
 
     private static final String TABLE_TODO = "table_todo";
     private static final String COLUMN_TODO_ID = "task_id";
     private static final String COLUMN_TODO = "todo";
+    private static final String COLUMN_IMAGE = "image";
 
-    private static String CREATE_TABLE_TODO = "CREATE TABLE " + TABLE_TODO + " (" + COLUMN_TODO_ID + " INTEGER PRIMARY KEY, " + COLUMN_TODO + " TEXT NOT NULL )";
+    private static String CREATE_TABLE_TODO = "CREATE TABLE " + TABLE_TODO + " (" + COLUMN_TODO_ID + " INTEGER PRIMARY KEY, " + COLUMN_TODO + " TEXT NOT NULL, " + COLUMN_IMAGE + " BLOB NOT NULL " + ")" ;
 
     private Context context;
     private SQLiteDatabase sqLiteDatabase;
@@ -43,10 +44,20 @@ public class ToDoListDBAdapter {
         return toDoListDBAdapterInstance;
     }
 
-    public boolean insert(String toDoItem)
+    public boolean insert(String toDoItem, byte[] image)
     {
         ContentValues contentValues = new ContentValues();
         contentValues.put(COLUMN_TODO, toDoItem);
+        contentValues.put(COLUMN_IMAGE, image);
+        return sqLiteDatabase.insert(TABLE_TODO, null, contentValues) > 0;
+    }
+
+    public boolean insertImage(String toDoItem, byte[] image)
+    {
+        ContentValues contentValues = new ContentValues();
+        contentValues.put(COLUMN_TODO, toDoItem);
+        contentValues.put(COLUMN_IMAGE, image);
+
         return sqLiteDatabase.insert(TABLE_TODO, null, contentValues) > 0;
     }
 
@@ -62,16 +73,14 @@ public class ToDoListDBAdapter {
         return sqLiteDatabase.update(TABLE_TODO, contentValues, COLUMN_TODO_ID + "=" + taskId, null) > 0;
     }
 
-    public List<ToDO> getAllToDos(){
+    public List<ToDO> getAllToDos(){  //Fetch data from SQLite
 
-        List<ToDO> toDOList = new ArrayList<ToDO>();
-        Cursor cursor = sqLiteDatabase.query(TABLE_TODO, new String[] {COLUMN_TODO_ID, COLUMN_TODO}, null, null, null, null, null, null);
+        List<ToDO> toDOList = new ArrayList<>();
+        Cursor cursor = sqLiteDatabase.query(TABLE_TODO, new String[] {COLUMN_TODO_ID, COLUMN_TODO, COLUMN_IMAGE }, null, null, null, null, null, null);
 
-        if(cursor != null & cursor.getCount() > 0)
-        {
-            while (cursor.moveToNext())
-            {
-                ToDO toDO = new ToDO(cursor.getInt(0), cursor.getString(1));
+        if(cursor != null & cursor.getCount() > 0) {
+            while (cursor.moveToNext()) {
+                ToDO toDO = new ToDO(cursor.getInt(0), cursor.getString(1), cursor.getBlob(2));
                 toDOList.add(toDO);
             }
             return toDOList;
@@ -98,11 +107,8 @@ public class ToDoListDBAdapter {
 
         @Override
         public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
-
+            db.execSQL("DROP TABLE IF EXISTS " + TABLE_TODO);
+            onCreate(db);
         }
     }
-
-
-
-
 }

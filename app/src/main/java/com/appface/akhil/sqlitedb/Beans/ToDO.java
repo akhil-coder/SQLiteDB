@@ -1,28 +1,40 @@
 package com.appface.akhil.sqlitedb.Beans;
 
+import java.sql.Blob;
+
 public class ToDO {
 
-    int Id;
-    String Task;
+    int id;
+    String description;
+    byte[] image;
 
-    public ToDO(int id, String task) {
-        Id = id;
-        Task = task;
+    public ToDO(int id, String task, byte[] image) {
+        this.id = id;
+        this.description = task;
+        this.image = image;
     }
 
     public int getId() {
-        return Id;
+        return id;
     }
 
     public void setId(int id) {
-        Id = id;
+        id = id;
     }
 
     public String getTask() {
-        return Task;
+        return description;
     }
 
     public void setTask(String task) {
-        Task = task;
+        description = task;
+    }
+
+    public byte[] getImage() {
+        return image;
+    }
+
+    public void setImage(byte[] image) {
+        this.image = image;
     }
 }
