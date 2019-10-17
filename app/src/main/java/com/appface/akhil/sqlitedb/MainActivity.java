@@ -6,21 +6,24 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.media.Image;
 import android.net.Uri;
 import android.os.Build;
 import android.provider.MediaStore;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Base64;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.ListView;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import com.appface.akhil.sqlitedb.Beans.ToDO;
@@ -28,7 +31,6 @@ import com.appface.akhil.sqlitedb.SQLite_DB.ToDoListDBAdapter;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.text.BreakIterator;
 import java.util.List;
 
 import retrofit2.Call;
@@ -44,14 +46,13 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private static final int MY_PERMISSIONS_REQUEST_READ_CONTACTS = 11;
     private static final int PERMISSION_CODE_CAMERA = 500;
     private static final int PERMISSION_CODE_GALLERY = 501;
-    ImageView ivcamera, ivupload, ivgallery, iv_avatar;
     final int CAMERA_REQUEST = 1;
     private static final String TAG = "MainActivity";
     Uri imageUri;
     private Bitmap bitmap;
-    private EditText et_image_name;
-    private TextView tv_display;
     ListView listView;
+    ImageView iv_upload_pic;
+    EditText et_image_name;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -60,39 +61,84 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         toDoListDBAdapter = ToDoListDBAdapter.getToDoListDBAdapterInstance(getApplicationContext());
         toDos = toDoListDBAdapter.getAllToDos();
-        ivcamera = findViewById(R.id.iv_camera);
-        ivgallery = findViewById(R.id.iv_gallery);
-        iv_avatar = findViewById(R.id.iv_avatar);
-        et_image_name = findViewById(R.id.et_image_name);
-        ivupload = findViewById(R.id.iv_upload);
-
-        ivgallery.setOnClickListener(this);
-        ivcamera.setOnClickListener(this);
-        ivupload.setOnClickListener(this);
 
         setNewList();
     }
 
     @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.home_page_action_bar, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+
+        switch (item.getItemId()) {
+            case R.id.action_add_pic:
+                openAddPic();
+                return true;
+            default:
+                return false;
+        }
+    }
+
+    private void openAddPic() {
+
+        final AlertDialog.Builder alert = new AlertDialog.Builder(MainActivity.this);
+        View mView = getLayoutInflater().inflate(R.layout.dialog_upload_pic, null);
+
+        final EditText image_name = mView.findViewById(R.id.et_image_name);
+        final ImageView iv_camera = mView.findViewById(R.id.iv_camera);
+        final ImageView iv_gallery = mView.findViewById(R.id.iv_gallery);
+        final ImageView iv_upload = mView.findViewById(R.id.iv_upload);
+        iv_upload_pic = mView.findViewById(R.id.iv_upload_pic);
+        et_image_name = mView.findViewById(R.id.et_image_name);
+
+        iv_camera.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                checkCameraPermission();
+
+            }
+        });
+        iv_gallery.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                checkGalleryPermission();
+
+            }
+        });
+        iv_upload.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                storeImageInSQL();
+//                                 onImageUpload();
+
+            }
+        });
+        alert.setView(mView);
+        final AlertDialog alertDialog = alert.create();
+        alertDialog.setCanceledOnTouchOutside(true);
+        alertDialog.show();
+    }
+
+    @Override
     public void onClick(View v) {
         switch (v.getId()) {
-            case R.id.iv_gallery: checkGalleryPermission(); break;
-            case R.id.iv_camera: checkCameraPermission(); break;
-            case R.id.iv_upload: storeImageInSQL();
-//                                 onImageUpload();
-                                 break;
+
             default: break;
         }
     }
 
-    private void setNewList(){
+    private void setNewList() {
 //        tv_display.setText(getToDolistString());
     }
 
     private void setNewDisplayList() {
         toDos = toDoListDBAdapter.getAllToDos();
-        if(toDos != null && toDos.size() > 0){
-            for(ToDO toDO: toDos){
+        if (toDos != null && toDos.size() > 0) {
+            for (ToDO toDO : toDos) {
 
             }
         }
@@ -112,13 +158,12 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     private void storeImageInSQL() {
         byteArrayImage = DbBitmapUtility.getBytes(bitmap);
-        if(toDoListDBAdapter.insert(et_image_name.getText().toString(), byteArrayImage))
+        if (toDoListDBAdapter.insert(et_image_name.getText().toString(), byteArrayImage))
             Toast.makeText(this, "Image Saved Locally", Toast.LENGTH_SHORT).show();
         setNewList();
     }
 
-    private void onImageUpload()
-    {
+    private void onImageUpload() {
         String imagebase64 = convertBitmaptoJpeg();
         ApiInterface apiInterface = ApiClient.getApiClient().create(ApiInterface.class);
         Call<ImageClass> call = apiInterface.uploadImage("Init Image", imagebase64);
@@ -167,20 +212,20 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
 
-        if(requestCode == CAMERA_REQUEST && resultCode == RESULT_OK && imageUri != null){
+        if (requestCode == CAMERA_REQUEST && resultCode == RESULT_OK && imageUri != null) {
             try {
                 bitmap = MediaStore.Images.Media.getBitmap(getContentResolver(), imageUri);
             } catch (IOException e) {
                 e.printStackTrace();
             }
-            iv_avatar.setImageURI(imageUri);
+            iv_upload_pic.setImageURI(imageUri);
         }
 
-        if(requestCode == SELECT_FILE && resultCode == RESULT_OK && data != null){
+        if (requestCode == SELECT_FILE && resultCode == RESULT_OK && data != null) {
             Uri uri = data.getData();
             try {
                 bitmap = MediaStore.Images.Media.getBitmap(getContentResolver(), uri);
-                iv_avatar.setImageBitmap(bitmap);
+                iv_upload_pic.setImageBitmap(bitmap);
 
             } catch (IOException e) {
                 e.printStackTrace();
@@ -191,17 +236,16 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
 
-        switch (requestCode)
-        {
+        switch (requestCode) {
             case PERMISSION_CODE_CAMERA: {
-                if(grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                     openCamera();
                 }
                 break;
             }
 
             case PERMISSION_CODE_GALLERY: {
-                if(grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                     openGallery();
                 }
                 break;
@@ -212,14 +256,14 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     void checkCameraPermission() {
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            if (checkSelfPermission(Manifest.permission.CAMERA) == PackageManager.PERMISSION_DENIED ) {
+            if (checkSelfPermission(Manifest.permission.CAMERA) == PackageManager.PERMISSION_DENIED) {
                 String[] permission = {Manifest.permission.CAMERA};
                 requestPermissions(permission, PERMISSION_CODE_CAMERA);
             } else {
                 //Persmission already granted
                 openCamera();
             }
-        }else {
+        } else {
             // < Marshmellow
             openCamera();
         } //test
@@ -236,7 +280,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 //Persmission already granted
                 openGallery();
             }
-        }else {
+        } else {
             // < Marshmellow
             openCamera();
         }
