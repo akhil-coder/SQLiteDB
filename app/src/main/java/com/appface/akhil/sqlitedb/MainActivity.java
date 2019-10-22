@@ -160,7 +160,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private void onImageUpload() {
         ImageRequest imageRequestBody;
         String imagebase64 = convertBitmaptoString();
-        imageRequestBody = new ImageRequest(et_image_name.getText().toString(), "Gorgeous", "dsfs");
+        imageRequestBody = new ImageRequest(et_image_name.getText().toString(), "Gorgeous", imagebase64);
+        Log.d(TAG, "onImageUpload: imagebase64 " + imagebase64);
         Log.d(TAG, "onImageUpload: imagebase64 " + imageRequestBody.toString());
         ApiInterface apiInterface = ApiClient.getApiClient().create(ApiInterface.class);
         Call<ImageResponse> call = apiInterface.uploadImage(imageRequestBody);
@@ -198,7 +199,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         contentValues.put(MediaStore.Images.Media.TITLE, "New Picture");
         contentValues.put(MediaStore.Images.Media.DESCRIPTION, "From the camera");
         imageUri = getContentResolver().insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, contentValues);
-
         Intent cameraIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
         cameraIntent.putExtra(MediaStore.EXTRA_OUTPUT, imageUri);
         startActivityForResult(cameraIntent, CAMERA_REQUEST);
@@ -221,7 +221,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             Uri uri = data.getData();
             try {
                 bitmap = MediaStore.Images.Media.getBitmap(getContentResolver(), uri);
-
             } catch (IOException e) {
                 e.printStackTrace();
             }

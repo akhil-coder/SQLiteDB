@@ -5,19 +5,19 @@ import com.google.gson.annotations.SerializedName;
 import java.io.Serializable;
 import java.sql.Blob;
 
-public class ImageRequest implements Serializable {
+public class ImageRequest  {
 
     @SerializedName("imageName")
     String imageName;
     @SerializedName("description")
     String description;
-    @SerializedName("imaUrl")
-    String imaUrl;
+    @SerializedName("imageUrl")
+    String imageUrl;
 
     public ImageRequest(String imageName, String description, String imaUrl) {
         this.imageName = imageName;
         this.description = description;
-        this.imaUrl = imaUrl;
+        this.imageUrl = imaUrl;
     }
 
     public ImageRequest() {
@@ -40,11 +40,11 @@ public class ImageRequest implements Serializable {
     }
 
     public String getImaUrl() {
-        return imaUrl;
+        return imageUrl;
     }
 
     public void setImaUrl(String imaUrl) {
-        this.imaUrl = imaUrl;
+        this.imageUrl = imaUrl;
     }
 
 
@@ -53,7 +53,7 @@ public class ImageRequest implements Serializable {
         return "ImageRequest{" +
                 "imageName='" + imageName + '\'' +
                 ", description='" + description + '\'' +
-                ", imaUrl='" + imaUrl + '\'' +
+                ", imaUrl='" + imageUrl + '\'' +
                 '}';
     }
 }
