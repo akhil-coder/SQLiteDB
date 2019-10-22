@@ -5,8 +5,6 @@ import android.content.ContentValues;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
-import android.media.Image;
 import android.net.Uri;
 import android.os.Build;
 import android.provider.MediaStore;
@@ -20,13 +18,12 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.Toast;
 
-import com.appface.akhil.sqlitedb.Beans.ToDO;
+import com.appface.akhil.sqlitedb.Beans.ImageRequest;
 import com.appface.akhil.sqlitedb.SQLite_DB.ToDoListDBAdapter;
 
 import java.io.ByteArrayOutputStream;
@@ -40,17 +37,15 @@ import retrofit2.Response;
 public class MainActivity extends AppCompatActivity implements View.OnClickListener {
 
     private ToDoListDBAdapter toDoListDBAdapter;
-    private List<ToDO> toDos;
+    private List<ImageRequest> imageRequests;
     private byte[] byteArrayImage;
     private static final int SELECT_FILE = 2;
-    private static final int MY_PERMISSIONS_REQUEST_READ_CONTACTS = 11;
     private static final int PERMISSION_CODE_CAMERA = 500;
     private static final int PERMISSION_CODE_GALLERY = 501;
     final int CAMERA_REQUEST = 1;
     private static final String TAG = "MainActivity";
     Uri imageUri;
     private Bitmap bitmap;
-    ListView listView;
     ImageView iv_upload_pic;
     EditText et_image_name;
 
@@ -60,8 +55,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         setContentView(R.layout.activity_main);
 
         toDoListDBAdapter = ToDoListDBAdapter.getToDoListDBAdapterInstance(getApplicationContext());
-        toDos = toDoListDBAdapter.getAllToDos();
-
+//      imageRequests = toDoListDBAdapter.getAllToDos();
         setNewList();
     }
 
@@ -113,8 +107,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             @Override
             public void onClick(View v) {
                 storeImageInSQL();
-//                                 onImageUpload();
-
+                onImageUpload();
             }
         });
         alert.setView(mView);
@@ -127,7 +120,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     public void onClick(View v) {
         switch (v.getId()) {
 
-            default: break;
+            default:
+                break;
         }
     }
 
@@ -135,14 +129,14 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 //        tv_display.setText(getToDolistString());
     }
 
-    private void setNewDisplayList() {
-        toDos = toDoListDBAdapter.getAllToDos();
-        if (toDos != null && toDos.size() > 0) {
-            for (ToDO toDO : toDos) {
-
-            }
-        }
-    }
+//    private void setNewDisplayList() {
+//        imageRequests = toDoListDBAdapter.getAllToDos();
+//        if (imageRequests != null && imageRequests.size() > 0) {
+//            for (ImageRequest imageRequest : imageRequests) {
+//
+//            }
+//        }
+//    }
 
     private void modifyToDo() {
 //        int id = Integer.parseInt(et_removeid.getText().toString());
@@ -164,28 +158,30 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     }
 
     private void onImageUpload() {
-        String imagebase64 = convertBitmaptoJpeg();
+        ImageRequest imageRequestBody;
+        String imagebase64 = convertBitmaptoString();
+        imageRequestBody = new ImageRequest(et_image_name.getText().toString(), "Gorgeous", "dsfs");
+        Log.d(TAG, "onImageUpload: imagebase64 " + imageRequestBody.toString());
         ApiInterface apiInterface = ApiClient.getApiClient().create(ApiInterface.class);
-        Call<ImageClass> call = apiInterface.uploadImage("Init Image", imagebase64);
-        call.enqueue(new Callback<ImageClass>() {
+        Call<ImageResponse> call = apiInterface.uploadImage(imageRequestBody);
+        call.enqueue(new Callback<ImageResponse>() {
             @Override
-            public void onResponse(Call<ImageClass> call, Response<ImageClass> response) {
-
-                ImageClass imageClass = response.body();
-                Toast.makeText(MainActivity.this, "Server response: " + imageClass.getResponse(), Toast.LENGTH_SHORT).show();
+            public void onResponse(Call<ImageResponse> call, Response<ImageResponse> response) {
+                ImageResponse imageResponse = response.body();
+                Toast.makeText(MainActivity.this, "Server response: " + imageResponse.getMessage(), Toast.LENGTH_SHORT).show();
             }
-
             @Override
-            public void onFailure(Call<ImageClass> call, Throwable t) {
-
+            public void onFailure(Call<ImageResponse> call, Throwable t) {
+                Toast.makeText(MainActivity.this, "Server response: Failure" + t.getMessage() , Toast.LENGTH_SHORT).show();
+                Log.d(TAG, "onFailure: " + t.getMessage());
             }
         });
     }
 
-    private String convertBitmaptoJpeg() {
+    private String convertBitmaptoString() {
         ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-        bitmap.compress(Bitmap.CompressFormat.JPEG, 100, byteArrayOutputStream);
-        byte[] imgByte = byteArrayOutputStream.toByteArray();
+        bitmap.compress(Bitmap.CompressFormat.JPEG, 100, byteArrayOutputStream); // Compress and save in byteArrayOutputStream
+        byte[] imgByte = byteArrayOutputStream.toByteArray(); //Convert ByteArrayOutputStream into byte array
         return Base64.encodeToString(imgByte, Base64.DEFAULT);
     }
 
@@ -225,11 +221,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             Uri uri = data.getData();
             try {
                 bitmap = MediaStore.Images.Media.getBitmap(getContentResolver(), uri);
-                iv_upload_pic.setImageBitmap(bitmap);
 
             } catch (IOException e) {
                 e.printStackTrace();
             }
+            iv_upload_pic.setImageBitmap(bitmap);
         }
     }
 

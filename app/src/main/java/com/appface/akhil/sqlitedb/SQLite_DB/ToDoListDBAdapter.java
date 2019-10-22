@@ -6,7 +6,7 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 
-import com.appface.akhil.sqlitedb.Beans.ToDO;
+import com.appface.akhil.sqlitedb.Beans.ImageRequest;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -73,20 +73,20 @@ public class ToDoListDBAdapter {
         return sqLiteDatabase.update(TABLE_TODO, contentValues, COLUMN_TODO_ID + "=" + taskId, null) > 0;
     }
 
-    public List<ToDO> getAllToDos(){  //Fetch data from SQLite
-
-        List<ToDO> toDOList = new ArrayList<>();
-        Cursor cursor = sqLiteDatabase.query(TABLE_TODO, new String[] {COLUMN_TODO_ID, COLUMN_TODO, COLUMN_IMAGE }, null, null, null, null, null, null);
-
-        if(cursor != null & cursor.getCount() > 0) {
-            while (cursor.moveToNext()) {
-                ToDO toDO = new ToDO(cursor.getInt(0), cursor.getString(1), cursor.getBlob(2));
-                toDOList.add(toDO);
-            }
-            return toDOList;
-        }
-        return null;
-    }
+//    public List<ImageRequest> getAllToDos(){  //Fetch data from SQLite
+//
+//        List<ImageRequest> toDOList = new ArrayList<>();
+//        Cursor cursor = sqLiteDatabase.query(TABLE_TODO, new String[] {COLUMN_TODO_ID, COLUMN_TODO, COLUMN_IMAGE }, null, null, null, null, null, null);
+//
+//        if(cursor != null & cursor.getCount() > 0) {
+//            while (cursor.moveToNext()) {
+//                ImageRequest imageRequest = new ImageRequest(cursor.getInt(0), cursor.getString(1), cursor.getBlob(2));
+//                toDOList.add(imageRequest);
+//            }
+//            return toDOList;
+//        }
+//        return null;
+//    }
 
     private static class ToDoListDBHelper extends SQLiteOpenHelper{
 
