@@ -1,12 +1,13 @@
-package com.appface.akhil.sqlitedb.SQLite_DB;
+package com.appface.akhil.sqlitedb.model.sqlite_db;
 
 import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
+import android.util.Log;
 
-import com.appface.akhil.sqlitedb.Beans.ToDO;
+import com.appface.akhil.sqlitedb.beans.ToDO;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -16,7 +17,7 @@ public class ToDoListDBAdapter {
     private static final String TAG = "ToDoListDBAdapter";
 
     private static final String DB_NAME = "todolist.db";
-    private static final int DB_Version = 1;
+    private static final int DB_Version = 4;
 
     private static final String TABLE_TODO = "table_todo";
     private static final String COLUMN_TODO_ID = "task_id";
@@ -45,6 +46,7 @@ public class ToDoListDBAdapter {
 
     public boolean insert(String toDoItem)
     {
+        Log.d(TAG, "insert: " + toDoItem);
         ContentValues contentValues = new ContentValues();
         contentValues.put(COLUMN_TODO, toDoItem);
         return sqLiteDatabase.insert(TABLE_TODO, null, contentValues) > 0;
@@ -76,6 +78,7 @@ public class ToDoListDBAdapter {
             }
             return toDOList;
         }
+        else
         return null;
     }
 

@@ -1,4 +1,4 @@
-package com.appface.akhil.sqlitedb.Beans;
+package com.appface.akhil.sqlitedb.beans;
 
 public class ToDO {
 
